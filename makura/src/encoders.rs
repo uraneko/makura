@@ -69,6 +69,8 @@ impl Encoder {
     ///
     /// This method always returns a string,
     /// passing an empty string results in a an empty `String` return value
+    // NOTE this doesnt fail
+    // but what if the input string is not a valid utf8
     pub fn encode<T: AsRef<str>>(&self, value: T) -> String {
         match self.base {
             Base::_64 => base64_encode(value),

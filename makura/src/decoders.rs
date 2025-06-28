@@ -115,6 +115,17 @@ pub enum DecodeError {
     InvalidLen { len: usize, base: Base },
 }
 
+impl core::fmt::Display for DecodeError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        // TODO
+        // fix clippy error
+        // infinite recursion
+        write!(f, "{}", self)
+    }
+}
+
+impl core::error::Error for DecodeError {}
+
 // takes input value bytes
 //
 // returns last byte, len with pads, padding length

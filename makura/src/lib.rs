@@ -25,6 +25,7 @@ pub const BASE16: Base = Base::_16;
 pub const BASE45: Base = Base::_45;
 
 #[derive(PartialEq, Clone, Copy, Ord, PartialOrd, Eq)]
+#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 pub enum Base {
     _64,
     _64URL,
@@ -68,10 +69,27 @@ impl core::fmt::Display for Base {
     }
 }
 
-impl TryFrom<&str> for Base {
-    type Error = ();
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum BaseError {
+    InvalidStrBaseValue,
+}
 
-    fn try_from(value: &str) -> Result<Self, Self::Error> {
+impl core::fmt::Display for BaseError {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        write!(f, "{}", 
+            match self {
+                Self::InvalidStrBaseValue => "Received invalid string value for base name, string base name should be one of [64, 64URL, 45, 32, 32HEX, 16]"
+            }
+        )
+    }
+}
+
+impl core::error::Error for BaseError {}
+
+impl core::str::FromStr for Base {
+    type Err = BaseError;
+
+    fn from_str(value: &str) -> Result<Self, Self::Err> {
         match value {
             "64" => Ok(BASE64),
             "64url" => Ok(BASE64URL),
@@ -79,7 +97,7 @@ impl TryFrom<&str> for Base {
             "32" => Ok(BASE32),
             "32hex" => Ok(BASE32HEX),
             "16" => Ok(BASE16),
-            _ => Err(()),
+            _ => Err(BaseError::InvalidStrBaseValue),
         }
     }
 }
