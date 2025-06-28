@@ -82,7 +82,7 @@ fn into_5bits_bytes(bytes: Vec<u64>) -> Vec<u8> {
     // let mut last = bytes.next_back().unwrap();
 
     bytes
-        .map(|b| {
+        .flat_map(|b| {
             [
                 // NOTE & 31 to take only the least 5 bits
                 (b >> 35) as u8 & 31,
@@ -95,7 +95,6 @@ fn into_5bits_bytes(bytes: Vec<u64>) -> Vec<u8> {
                 b as u8 & 31,
             ]
         })
-        .flatten()
         .collect()
 }
 

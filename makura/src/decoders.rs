@@ -120,7 +120,7 @@ impl core::fmt::Display for DecodeError {
         // TODO
         // fix clippy error
         // infinite recursion
-        write!(f, "{}", self)
+        write!(f, "{:?}", self)
     }
 }
 
@@ -134,7 +134,7 @@ impl core::error::Error for DecodeError {}
 fn input_meta(value: &mut &[u8]) -> (u8, usize, u8) {
     let len = value.len();
     let mut pads = 0u8;
-    while value[len - pads as usize - 1] == '=' as u8 {
+    while value[len - pads as usize - 1] == b'=' {
         pads += 1;
     }
     let last = value[len - pads as usize - 1];
@@ -482,12 +482,12 @@ impl Bases {
 mod deducer_chars {
     use super::*;
 
-    const LWC: ops::RangeInclusive<u8> = 'a' as u8..='z' as u8;
-    const UPC: ops::RangeInclusive<u8> = 'A' as u8..='Z' as u8;
-    const NUM: ops::RangeInclusive<u8> = '0' as u8..='9' as u8;
-    const HEX: ops::RangeInclusive<u8> = 'A' as u8..='F' as u8;
-    const N32: ops::RangeInclusive<u8> = '2' as u8..='7' as u8;
-    const PAD: u8 = '=' as u8;
+    const LWC: ops::RangeInclusive<u8> = b'a'..=b'z';
+    const UPC: ops::RangeInclusive<u8> = b'A'..=b'Z';
+    const NUM: ops::RangeInclusive<u8> = b'0'..=b'9';
+    const HEX: ops::RangeInclusive<u8> = b'A'..=b'F';
+    const N32: ops::RangeInclusive<u8> = b'2'..=b'7';
+    const PAD: u8 = b'=';
 
     pub(super) fn chars_are_64(value: &[u8]) -> Result<(), DecodeError> {
         if let Some(e) = value
@@ -496,7 +496,7 @@ mod deducer_chars {
                 if UPC.contains(c)
                     || LWC.contains(c)
                     || NUM.contains(c)
-                    || ['+' as u8, '/' as u8].contains(c)
+                    || [b'+', b'/'].contains(c)
                     || *c == PAD
                 {
                     Ok(())
@@ -522,7 +522,7 @@ mod deducer_chars {
                 if UPC.contains(c)
                     || LWC.contains(c)
                     || NUM.contains(c)
-                    || ['-' as u8, '_' as u8].contains(c)
+                    || [b'-', b'_'].contains(c)
                     || *c == PAD
                 {
                     Ok(())
@@ -547,11 +547,7 @@ mod deducer_chars {
             .map(|c| {
                 if NUM.contains(c)
                     || UPC.contains(c)
-                    || [
-                        ' ' as u8, '$' as u8, '%' as u8, '*' as u8, '+' as u8, '-' as u8,
-                        '.' as u8, '/' as u8, ':' as u8,
-                    ]
-                    .contains(c)
+                    || [b' ', b'$', b'%', b'*', b'+', b'-', b'.', b'/', b':'].contains(c)
                 {
                     Ok(())
                 } else {
@@ -573,7 +569,7 @@ mod deducer_chars {
         if let Some(e) = value
             .into_iter()
             .map(|c| {
-                if NUM.contains(c) || ('A' as u8..='V' as u8).contains(c) || *c == PAD {
+                if NUM.contains(c) || (b'A'..=b'V').contains(c) || *c == PAD {
                     Ok(())
                 } else {
                     Err(DecodeError::InvalidChar {

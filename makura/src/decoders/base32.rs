@@ -49,7 +49,7 @@ fn into_40bits_bytes(value: Vec<u8>) -> Vec<u64> {
 fn into_8bits_bytes(value: Vec<u64>) -> Vec<u8> {
     let mut bytes = value
         .into_iter()
-        .map(|b| {
+        .flat_map(|b| {
             [
                 // same as ( b >> 32 ) as u8
                 ((b & 0xff00000000) >> 32) as u8,
@@ -59,7 +59,6 @@ fn into_8bits_bytes(value: Vec<u64>) -> Vec<u8> {
                 b as u8,
             ]
         })
-        .flatten()
         .collect::<Vec<u8>>();
     while let Some(0) = bytes.last() {
         bytes.pop();
