@@ -1,4 +1,4 @@
-#![cfg(any(feature = "base32", feature = "base32_hex"))]
+#![cfg(any(feature = "base64", feature = "base64_url"))]
 use crate::makura_alloc::Vec;
 
 use super::DecodeError;
@@ -20,27 +20,20 @@ use super::DecodeError;
 // to implement the other decoders
 // only a different version of this function is needed
 // the other functions stay the same
-fn into_40bits_bytes(value: Vec<u8>) -> Vec<u64> {
+fn into_24bits_bytes(value: Vec<u8>) -> Vec<u32> {
     // NOTE len must be an integra multiple of 4
     value
-        .chunks(8)
+        .chunks(4)
+        // .inspect(|c| println!("{:?}", c))
         .map(|b| {
-            let mut mask = 0u64;
-            mask |= b[0] as u64;
-            mask <<= 5;
-            mask |= b[1] as u64;
-            mask <<= 5;
-            mask |= b[2] as u64;
-            mask <<= 5;
-            mask |= b[3] as u64;
-            mask <<= 5;
-            mask |= b[4] as u64;
-            mask <<= 5;
-            mask |= b[5] as u64;
-            mask <<= 5;
-            mask |= b[6] as u64;
-            mask <<= 5;
-            mask |= b[7] as u64;
+            let mut mask = 0u32;
+            mask |= b[0] as u32;
+            mask <<= 6;
+            mask |= b[1] as u32;
+            mask <<= 6;
+            mask |= b[2] as u32;
+            mask <<= 6;
+            mask |= b[3] as u32;
 
             mask
         })
@@ -48,20 +41,16 @@ fn into_40bits_bytes(value: Vec<u8>) -> Vec<u64> {
 }
 
 // get back 8 bit bytes from the 24bits bytes
-fn into_8bits_bytes(value: Vec<u64>) -> Vec<u8> {
+fn into_8bits_bytes(value: Vec<u32>) -> Vec<u8> {
     let mut bytes = value
         .into_iter()
-        .map(|b| {
+        .flat_map(|b| {
             [
-                // same as ( b >> 32 ) as u8
-                ((b & 0xff00000000) >> 32) as u8,
-                ((b & 0xff000000) >> 24) as u8,
                 ((b & 0xff0000) >> 16) as u8,
                 ((b & 0xff00) >> 8) as u8,
                 b as u8,
             ]
         })
-        .flatten()
         .collect::<Vec<u8>>();
     while let Some(0) = bytes.last() {
         bytes.pop();
@@ -70,16 +59,16 @@ fn into_8bits_bytes(value: Vec<u64>) -> Vec<u8> {
     bytes
 }
 
-#[cfg(feature = "base32")]
-pub fn base32_decode(indices: Vec<u8>) -> Vec<u8> {
-    let bytes = into_40bits_bytes(indices);
+#[cfg(feature = "base64")]
+pub fn base64_decode(indices: Vec<u8>) -> Vec<u8> {
+    let bytes = into_24bits_bytes(indices);
 
     into_8bits_bytes(bytes)
 }
 
-#[cfg(feature = "base32_hex")]
-pub fn base32_hex_decode(indices: Vec<u8>) -> Vec<u8> {
-    let bytes = into_40bits_bytes(indices);
+#[cfg(feature = "base64_url")]
+pub fn base64_url_decode(indices: Vec<u8>) -> Vec<u8> {
+    let bytes = into_24bits_bytes(indices);
 
     into_8bits_bytes(bytes)
 }

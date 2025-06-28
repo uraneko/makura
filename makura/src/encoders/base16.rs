@@ -13,7 +13,7 @@ fn into_4bits_bytes(bytes: Vec<u8>) -> Vec<u8> {
     let bytes = bytes.into_iter();
     // let mut last = bytes.next_back().unwrap();
 
-    bytes.map(|b| [(b >> 4) & 15, b & 15]).flatten().collect()
+    bytes.flat_map(|b| [(b >> 4) & 15, b & 15]).collect()
 }
 
 fn into_base16(bytes: Vec<u8>) -> String {

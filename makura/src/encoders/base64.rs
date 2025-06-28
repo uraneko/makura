@@ -42,7 +42,7 @@ fn into_6bits_bytes(bytes: Vec<u32>) -> Vec<u8> {
     // let mut last = bytes.next_back().unwrap();
 
     bytes
-        .map(|b| {
+        .flat_map(|b| {
             [
                 (b >> 18) as u8 & 63,
                 (b >> 12) as u8 & 63,
@@ -50,7 +50,6 @@ fn into_6bits_bytes(bytes: Vec<u32>) -> Vec<u8> {
                 b as u8 & 63,
             ]
         })
-        .flatten()
         .collect()
 }
 

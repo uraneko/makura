@@ -47,7 +47,7 @@ fn into_base45_bytes(bytes: Vec<u16>) -> Vec<u8> {
 
     bytes
         // .inspect(|b| println!("{}", b))
-        .map(|b| {
+        .flat_map(|b| {
             let mut transformer = crate::BaseTransformer::new(45, b);
             transformer.transform_all();
 
@@ -59,15 +59,13 @@ fn into_base45_bytes(bytes: Vec<u16>) -> Vec<u8> {
             seq
         })
         // .inspect(|seq| println!("{:?}", seq))
-        .flatten()
         .collect()
 }
 
 fn into_base45(bytes: Vec<u8>) -> String {
     let bytes = bytes.into_iter();
-    let encoded = bytes.map(|b| char_from_idx(b, &BASE45)).collect::<String>();
 
-    encoded
+    bytes.map(|b| char_from_idx(b, &BASE45)).collect::<String>()
 }
 
 pub fn base45_encode<T>(value: T) -> String
