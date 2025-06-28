@@ -50,3 +50,8 @@ base32_hex = []
 base32 = []
 base16 = []
 bases_all = ["base64", "base64_url", "base45", "base32", "base32_hex", "base16"]
+
+clap = ["dep:clap"]
+
+[dependencies]
+clap = { version = "4.5.40", features = ["derive"], optional = true, default-features = false }

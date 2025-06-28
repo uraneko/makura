@@ -1,3 +1,3 @@
 [workspace]
-members = ["makura", "makura_binary"]
+members = ["makura", "makura_cli"]
 resolver = "3"
