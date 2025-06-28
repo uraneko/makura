@@ -1,25 +1,21 @@
-use std::path::PathBuf;
 use std::io::Write;
-
+use std::path::PathBuf;
 
 use clap::{Args, Parser};
 
-use makura::{Bases,Base};
+use makura::{Base, Bases};
 use makura::{Decoder, Encoder};
 
 fn main() -> Result<(), CLIError> {
     let res = match Makura::parse() {
-        Makura::Decode(d) => d.run(), 
+        Makura::Decode(d) => d.run(),
         Makura::Encode(e) => e.run(),
         Makura::Deduce(d) => d.run(),
         Makura::Convert(c) => c.run(),
-    };
-    if res.is_err() {
-        return  res.map(|_| ());
-    }
+    }?;
 
     let stdout = std::io::stdout().lock();
-    std::io::BufWriter::new(stdout).write(res?.as_bytes())?;
+    std::io::BufWriter::new(stdout).write_all(res.as_bytes())?;
 
     Ok(())
 }
@@ -61,9 +57,7 @@ enum Makura {
     Convert(Convert),
 }
 
-trait CommandLauncher 
-{
-
+trait CommandLauncher {
     fn run(self) -> Result<String, CLIError>;
 }
 
@@ -92,19 +86,18 @@ fn read_file_str(f: std::path::PathBuf) -> std::io::Result<String> {
 }
 
 fn extract_data(f: Option<PathBuf>, d: Option<String>) -> Result<String, CLIError> {
-       if let Some(f) = f {
-            let d = read_file_str(f);
-            if d.is_err() {
-                return d.map_err(|_| CLIError::CouldNotOpenFileForReading);
-            }
-
-            d.map_err(|_| CLIError::CouldNotOpenFileForReading)
-        } else if let Some(d) = d {
-            Ok(d)
-        } else {
-            return Err(CLIError::CouldNotOpenFileForReading)
+    if let Some(f) = f {
+        let d = read_file_str(f);
+        if d.is_err() {
+            return d.map_err(|_| CLIError::CouldNotOpenFileForReading);
         }
 
+        d.map_err(|_| CLIError::CouldNotOpenFileForReading)
+    } else if let Some(d) = d {
+        Ok(d)
+    } else {
+        return Err(CLIError::CouldNotOpenFileForReading);
+    }
 }
 
 impl CommandLauncher for Decode {
@@ -119,17 +112,18 @@ impl CommandLauncher for Decode {
         } else if let Some(d) = self.data {
             d
         } else {
-            return Err(CLIError::CouldNotOpenFileForReading)
+            return Err(CLIError::CouldNotOpenFileForReading);
         };
 
         if let Some(base) = self.base {
-            Decoder::decode(data, base).map(|res| res.into_utf8().unwrap()).map_err(|e| CLIError::DecodeFailed)
+            Decoder::decode(data, base)
+                .map(|res| res.into_utf8().unwrap())
+                .map_err(|e| CLIError::DecodeFailed)
         } else {
             Decoder::decode_deduce(data)
-.map(|res| res.into_utf8().unwrap()).map_err(|e| CLIError::DecodeFailed)
-
+                .map(|res| res.into_utf8().unwrap())
+                .map_err(|e| CLIError::DecodeFailed)
         }
-
     }
 }
 
@@ -149,7 +143,7 @@ struct Encode {
 
 impl CommandLauncher for Encode {
     fn run(self) -> Result<String, CLIError> {
-       let data = if let Some(f) = self.file {
+        let data = if let Some(f) = self.file {
             let d = read_file_str(f);
             if d.is_err() {
                 return d.map_err(|e| CLIError::CouldNotOpenFileForReading);
@@ -159,11 +153,11 @@ impl CommandLauncher for Encode {
         } else if let Some(d) = self.data {
             d
         } else {
-            return Err(CLIError::CouldNotOpenFileForReading)
+            return Err(CLIError::CouldNotOpenFileForReading);
         };
 
         let Some(base) = self.base else {
-           return  Err(CLIError::NeedABaseToEncode)
+            return Err(CLIError::NeedABaseToEncode);
         };
 
         Ok(<Base as Into<Encoder>>::into(base).encode(data))
@@ -180,16 +174,18 @@ struct Deduce {
     data: Option<String>,
 }
 
-
 impl CommandLauncher for Deduce {
-    fn run(self) -> Result<String,CLIError>  {
+    fn run(self) -> Result<String, CLIError> {
         let data = extract_data(self.file, self.data);
-        if data.is_err() { 
-            return data
+        if data.is_err() {
+            return data;
         }
         let data = data.unwrap();
 
-        Bases::default().deduce_encoding(&data).map_err(|e| CLIError::DeduceFailed).map(|b| b.to_string())
+        Bases::default()
+            .deduce_encoding(&data)
+            .map_err(|e| CLIError::DeduceFailed)
+            .map(|b| b.to_string())
     }
 }
 
@@ -208,31 +204,31 @@ struct Convert {
     #[arg(long, short = 'c')]
     chain: Option<u8>,
     #[arg(long, short = 'r')]
-    repeat: Option<u8>
+    repeat: Option<u8>,
 }
 
 impl CommandLauncher for Convert {
     fn run(self) -> Result<String, CLIError> {
         let data = extract_data(self.file, self.data);
-        if data.is_err() { 
-            return data
+        if data.is_err() {
+            return data;
         }
         let data = data.unwrap();
 
-
-        let input = if let Some(src_base) = self.src  {
+        let input = if let Some(src_base) = self.src {
             Decoder::decode(data, src_base)
         } else {
             Decoder::decode_deduce(data)
         };
 
         if input.is_err() {
-            return input.map(|_| String::new()).map_err(|_| CLIError::DecodeFailed);
+            return input
+                .map(|_| String::new())
+                .map_err(|_| CLIError::DecodeFailed);
         }
         let input = input.unwrap().into_utf8().unwrap();
         let enc: Encoder = self.dest.into();
 
         Ok(enc.encode(input))
-
     }
 }

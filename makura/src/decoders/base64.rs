@@ -44,14 +44,13 @@ fn into_24bits_bytes(value: Vec<u8>) -> Vec<u32> {
 fn into_8bits_bytes(value: Vec<u32>) -> Vec<u8> {
     let mut bytes = value
         .into_iter()
-        .map(|b| {
+        .flat_map(|b| {
             [
                 ((b & 0xff0000) >> 16) as u8,
                 ((b & 0xff00) >> 8) as u8,
                 b as u8,
             ]
         })
-        .flatten()
         .collect::<Vec<u8>>();
     while let Some(0) = bytes.last() {
         bytes.pop();

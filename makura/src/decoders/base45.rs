@@ -31,8 +31,7 @@ fn into_base265_values(value: Vec<u16>) -> Vec<u8> {
     let mut bytes = value.into_iter();
     let last = bytes.next_back().unwrap();
     let mut bytes = bytes
-        .map(|b| [((b & 0xff00) >> 8) as u8, b as u8])
-        .flatten()
+        .flat_map(|b| [((b & 0xff00) >> 8) as u8, b as u8])
         .collect::<Vec<u8>>();
 
     if last < u8::MAX as u16 {
