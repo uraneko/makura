@@ -1,4 +1,4 @@
-use std::io::Write;
+use std::io::{BufRead, IsTerminal, Write, stdin};
 use std::path::PathBuf;
 
 use clap::{Args, Parser};
@@ -85,7 +85,16 @@ fn read_file_str(f: std::path::PathBuf) -> std::io::Result<String> {
     std::fs::read_to_string(f)
 }
 
+fn pipe_input() -> String {
+    stdin().lock().lines().flatten().collect::<String>()
+}
+
 fn extract_data(f: Option<PathBuf>, d: Option<String>) -> Result<String, CLIError> {
+    let stdin = stdin().lock();
+    if !stdin.is_terminal() {
+        return Ok(pipe_input());
+    }
+
     if let Some(f) = f {
         let d = read_file_str(f);
         if d.is_err() {
@@ -102,18 +111,7 @@ fn extract_data(f: Option<PathBuf>, d: Option<String>) -> Result<String, CLIErro
 
 impl CommandLauncher for Decode {
     fn run(self) -> Result<String, CLIError> {
-        let data = if let Some(f) = self.file {
-            let d = read_file_str(f);
-            if d.is_err() {
-                return d.map_err(|e| CLIError::CouldNotOpenFileForReading);
-            }
-
-            d.unwrap()
-        } else if let Some(d) = self.data {
-            d
-        } else {
-            return Err(CLIError::CouldNotOpenFileForReading);
-        };
+        let data = extract_data(self.file, self.data)?;
 
         if let Some(base) = self.base {
             Decoder::decode(data, base)
@@ -143,18 +141,7 @@ struct Encode {
 
 impl CommandLauncher for Encode {
     fn run(self) -> Result<String, CLIError> {
-        let data = if let Some(f) = self.file {
-            let d = read_file_str(f);
-            if d.is_err() {
-                return d.map_err(|e| CLIError::CouldNotOpenFileForReading);
-            }
-
-            d.unwrap()
-        } else if let Some(d) = self.data {
-            d
-        } else {
-            return Err(CLIError::CouldNotOpenFileForReading);
-        };
+        let data = extract_data(self.file, self.data)?;
 
         let Some(base) = self.base else {
             return Err(CLIError::NeedABaseToEncode);
@@ -176,11 +163,7 @@ struct Deduce {
 
 impl CommandLauncher for Deduce {
     fn run(self) -> Result<String, CLIError> {
-        let data = extract_data(self.file, self.data);
-        if data.is_err() {
-            return data;
-        }
-        let data = data.unwrap();
+        let data = extract_data(self.file, self.data)?;
 
         Bases::default()
             .deduce_encoding(&data)
@@ -209,11 +192,7 @@ struct Convert {
 
 impl CommandLauncher for Convert {
     fn run(self) -> Result<String, CLIError> {
-        let data = extract_data(self.file, self.data);
-        if data.is_err() {
-            return data;
-        }
-        let data = data.unwrap();
+        let data = extract_data(self.file, self.data)?;
 
         let input = if let Some(src_base) = self.src {
             Decoder::decode(data, src_base)

@@ -76,9 +76,12 @@ pub enum BaseError {
 
 impl core::fmt::Display for BaseError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(f, "{}", 
+        write!(
+            f,
+            "{}",
             match self {
-                Self::InvalidStrBaseValue => "Received invalid string value for base name, string base name should be one of [64, 64URL, 45, 32, 32HEX, 16]"
+                Self::InvalidStrBaseValue =>
+                    "Received invalid string value for base name, string base name should be one of [64, 64URL, 45, 32, 32HEX, 16]",
             }
         )
     }
