@@ -90,7 +90,7 @@ fn pipe_input() -> String {
 }
 
 fn extract_data(f: Option<PathBuf>, d: Option<String>) -> Result<String, CLIError> {
-    let stdin = stdin().lock();
+    let stdin = stdin();
     if !stdin.is_terminal() {
         return Ok(pipe_input());
     }
