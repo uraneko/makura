@@ -34,7 +34,7 @@ jobs:
           # components: clippy
       - run: rustup default $msrv
       - run: rustup component add clippy
-      - run: rustup toolchain install ${{ env.msrv }}-${{ matrix.target }}
+      - run: rustup target add ${{ matrix.target }}
       - run: cargo build --verbose --target ${{ matrix.target }}
       - run: cargo clippy --verbose
       - run: cargo test --verbose
