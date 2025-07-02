@@ -86,6 +86,8 @@ fn read_file_str(f: std::path::PathBuf) -> std::io::Result<String> {
     std::fs::read_to_string(f)
 }
 
+// TODO return a Result
+// handle lines() errors
 fn pipe_input() -> String {
     stdin().lock().lines().flatten().collect::<String>()
 }
@@ -144,7 +146,7 @@ impl CommandLauncher for Encode {
     fn run(self) -> Result<String, CLIError> {
         let input = extract_input(self.file, self.input)?;
         // default to base64 if no base was specified
-        let base = self.base.unwrap_or(Base::default());
+        let base = self.base.unwrap_or_default();
         // let Some(base) = self.base else {
         //     return Err(CLIError::NeedABaseToEncode);
         // };
