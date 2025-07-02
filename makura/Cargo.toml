@@ -31,12 +31,6 @@ path = "tests/base16.rs"
 [features]
 default = ["bases_all", "encoding_decoding"]
 
-# for documentation, 
-# docs.rs builds documentations in nightly + crate features documentation need nightly to be built
-nightly = []
-# for logic that depends on std features, currently there is none
-# std = []
-
 # for enabling decoding/encoding 
 decoding = []
 encoding = []
@@ -51,7 +45,14 @@ base32 = []
 base16 = []
 bases_all = ["base64", "base64_url", "base45", "base32", "base32_hex", "base16"]
 
+# for documentation, 
+# docs.rs builds documentations in nightly + crate features documentation need nightly to be built
+nightly = []
+# opts in to the std library 
+# for logic that depends on std features, currently there is none
+# std = []
+# adds clap with derive and std features  as a dependency 
 clap = ["dep:clap"]
 
 [dependencies]
-clap = { version = "4.5.40", features = ["derive"], optional = true, default-features = false }
+clap = { version = "4.5.40", features = ["std", "derive"], optional = true, default-features = false }

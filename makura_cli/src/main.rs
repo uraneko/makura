@@ -62,11 +62,12 @@ trait CommandLauncher {
 }
 
 #[derive(Debug, Args)]
+#[command(alias = "dec")]
 struct Decode {
     #[arg(long, short = 'f')]
     file: Option<std::path::PathBuf>,
-    #[arg(long, short = 'd')]
-    data: Option<String>,
+    #[arg(long, short = 'i')]
+    input: Option<String>,
     #[arg(long, short = 'b')]
     base: Option<Base>,
     #[arg(long)]
@@ -89,9 +90,8 @@ fn pipe_input() -> String {
     stdin().lock().lines().flatten().collect::<String>()
 }
 
-fn extract_data(f: Option<PathBuf>, d: Option<String>) -> Result<String, CLIError> {
-    let stdin = stdin();
-    if !stdin.is_terminal() {
+fn extract_input(f: Option<PathBuf>, d: Option<String>) -> Result<String, CLIError> {
+    if !stdin().is_terminal() {
         return Ok(pipe_input());
     }
 
@@ -111,14 +111,14 @@ fn extract_data(f: Option<PathBuf>, d: Option<String>) -> Result<String, CLIErro
 
 impl CommandLauncher for Decode {
     fn run(self) -> Result<String, CLIError> {
-        let data = extract_data(self.file, self.data)?;
+        let input = extract_input(self.file, self.input)?;
 
         if let Some(base) = self.base {
-            Decoder::decode(data, base)
+            Decoder::decode(input, base)
                 .map(|res| res.into_utf8().unwrap())
                 .map_err(|e| CLIError::DecodeFailed)
         } else {
-            Decoder::decode_deduce(data)
+            Decoder::decode_deduce(input)
                 .map(|res| res.into_utf8().unwrap())
                 .map_err(|e| CLIError::DecodeFailed)
         }
@@ -126,11 +126,12 @@ impl CommandLauncher for Decode {
 }
 
 #[derive(Debug, Args)]
+#[command(alias = "enc")]
 struct Encode {
     #[arg(long, short = 'f')]
     file: Option<std::path::PathBuf>,
-    #[arg(long, short = 'd')]
-    data: Option<String>,
+    #[arg(long, short = 'i')]
+    input: Option<String>,
     #[arg(long, short = 'b')]
     base: Option<Base>,
     #[arg(long, short = 'c')]
@@ -141,38 +142,40 @@ struct Encode {
 
 impl CommandLauncher for Encode {
     fn run(self) -> Result<String, CLIError> {
-        let data = extract_data(self.file, self.data)?;
+        let input = extract_input(self.file, self.input)?;
 
         let Some(base) = self.base else {
             return Err(CLIError::NeedABaseToEncode);
         };
 
-        Ok(<Base as Into<Encoder>>::into(base).encode(data))
+        Ok(<Base as Into<Encoder>>::into(base).encode(input))
         // .map(|res| res.into_utf8().unwrap())
         // .map_err(|e| CLIError::DecodeFailed)
     }
 }
 
 #[derive(Debug, Args)]
+#[command(alias = "ddc")]
 struct Deduce {
     #[arg(long, short = 'f')]
     file: Option<std::path::PathBuf>,
-    #[arg(long, short = 'd')]
-    data: Option<String>,
+    #[arg(long, short = 'i')]
+    input: Option<String>,
 }
 
 impl CommandLauncher for Deduce {
     fn run(self) -> Result<String, CLIError> {
-        let data = extract_data(self.file, self.data)?;
+        let input = extract_input(self.file, self.input)?;
 
         Bases::default()
-            .deduce_encoding(&data)
+            .deduce_encoding(&input)
             .map_err(|e| CLIError::DeduceFailed)
             .map(|b| b.to_string())
     }
 }
 
 #[derive(Debug, Args)]
+#[command(alias = "con")]
 struct Convert {
     #[arg(long, short = 'S')]
     src: Option<Base>,
@@ -180,8 +183,8 @@ struct Convert {
     dest: Base,
     #[arg(long, short = 'f')]
     file: Option<std::path::PathBuf>,
-    #[arg(long, short = 'd')]
-    data: Option<String>,
+    #[arg(long, short = 'i')]
+    input: Option<String>,
     #[arg(long, short = 'b')]
     base: Option<Base>,
     #[arg(long, short = 'c')]
@@ -192,12 +195,12 @@ struct Convert {
 
 impl CommandLauncher for Convert {
     fn run(self) -> Result<String, CLIError> {
-        let data = extract_data(self.file, self.data)?;
+        let input = extract_input(self.file, self.input)?;
 
         let input = if let Some(src_base) = self.src {
-            Decoder::decode(data, src_base)
+            Decoder::decode(input, src_base)
         } else {
-            Decoder::decode_deduce(data)
+            Decoder::decode_deduce(input)
         };
 
         if input.is_err() {
