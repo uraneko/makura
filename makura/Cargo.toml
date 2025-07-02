@@ -50,7 +50,7 @@ bases_all = ["base64", "base64_url", "base45", "base32", "base32_hex", "base16"]
 nightly = []
 # opts in to the std library 
 # for logic that depends on std features, currently there is none
-# std = []
+std = []
 # adds clap with derive and std features  as a dependency 
 clap = ["dep:clap"]
 

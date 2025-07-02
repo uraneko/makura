@@ -1,5 +1,5 @@
-// #![cfg_attr(not(feature = "std"), no_std)]
-#![no_std]
+#![cfg_attr(not(feature = "std"), no_std)]
+// #![no_std]
 #![doc(html_playground_url = "https://play.rust-lang.org/?version=stable&mode=debug&edition=2024")]
 #![cfg_attr(feature = "nightly", feature(doc_auto_cfg))]
 #![cfg_attr(feature = "nightly", feature(test))]
