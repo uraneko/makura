@@ -37,6 +37,8 @@ jobs:
       - run: cargo build --verbose --target ${{ matrix.target }}
       - run: cargo clippy --verbose
       - run: cargo test --verbose
+      - run: cargo +nightly test --all-features
+      - run: cargo +nightly doc --open
       
   
 
