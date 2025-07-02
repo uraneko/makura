@@ -11,7 +11,7 @@ fn main() -> Result<(), CLIError> {
         Makura::Decode(d) => d.run(),
         Makura::Encode(e) => e.run(),
         Makura::Deduce(d) => d.run(),
-        Makura::Convert(c) => c.run(),
+        Makura::Recast(c) => c.run(),
     }?;
 
     let stdout = std::io::stdout().lock();
@@ -54,7 +54,7 @@ enum Makura {
     Decode(Decode),
     Encode(Encode),
     Deduce(Deduce),
-    Convert(Convert),
+    Recast(Recast),
 }
 
 trait CommandLauncher {
@@ -143,10 +143,11 @@ struct Encode {
 impl CommandLauncher for Encode {
     fn run(self) -> Result<String, CLIError> {
         let input = extract_input(self.file, self.input)?;
-
-        let Some(base) = self.base else {
-            return Err(CLIError::NeedABaseToEncode);
-        };
+        // default to base64 if no base was specified
+        let base = self.base.unwrap_or(Base::default());
+        // let Some(base) = self.base else {
+        //     return Err(CLIError::NeedABaseToEncode);
+        // };
 
         Ok(<Base as Into<Encoder>>::into(base).encode(input))
         // .map(|res| res.into_utf8().unwrap())
@@ -175,8 +176,8 @@ impl CommandLauncher for Deduce {
 }
 
 #[derive(Debug, Args)]
-#[command(alias = "con")]
-struct Convert {
+#[command(alias = "rec")]
+struct Recast {
     #[arg(long, short = 'S')]
     src: Option<Base>,
     #[arg(long, short = 'D')]
@@ -193,7 +194,7 @@ struct Convert {
     repeat: Option<u8>,
 }
 
-impl CommandLauncher for Convert {
+impl CommandLauncher for Recast {
     fn run(self) -> Result<String, CLIError> {
         let input = extract_input(self.file, self.input)?;
 

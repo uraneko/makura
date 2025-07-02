@@ -113,6 +113,8 @@ pub fn is_valid_64_padding(last_byte: u8, pads: u8) -> Result<(), DecodeError> {
     }
 }
 
+// WARN validator fns should take a ref to the input then
+// do their checks on that
 pub fn is_valid_64url_padding(last_byte: u8, pads: u8) -> Result<(), DecodeError> {
     let char = last_byte as char;
     let last_byte = idx_from_char(char, &BASE64URL);

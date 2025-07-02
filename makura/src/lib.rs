@@ -25,9 +25,10 @@ pub const BASE32HEX: Base = Base::_32HEX;
 pub const BASE16: Base = Base::_16;
 pub const BASE45: Base = Base::_45;
 
-#[derive(PartialEq, Clone, Copy, Ord, PartialOrd, Eq)]
+#[derive(PartialEq, Default, Clone, Copy, Ord, PartialOrd, Eq, Hash)]
 #[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 pub enum Base {
+    #[default]
     _64,
     _64URL,
     _45,
