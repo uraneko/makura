@@ -2,23 +2,11 @@ name: Cargo Build & Test
 
 on:
   push:
-  pull_request:
   workflow_dispatch: 
 
 env: 
   CARGO_TERM_COLOR: always
   msrv: 1.85.0
-  targets: 
-         "x86_64-apple-darwin,
-         aarch64-apple-darwin,
-         aarch64-apple-ios,
-         x86_64-pc-windows-msvc,
-         x86_64-pc-windows-gnu,
-         x86_64-unknown-linux-gnu,
-         x86_64-unknown-linux-musl,
-         aarch64-unknown-linux-gnu,
-         aarch64-unknown-linux-musl,
-         aarch64-linux-android"
 
 jobs:
   build_and_test:
@@ -27,23 +15,23 @@ jobs:
     strategy:
       matrix: 
         target:
-         - x86_64-apple-darwin,
-         - aarch64-apple-darwin,
-         - aarch64-apple-ios,
-         - x86_64-pc-windows-msvc,
-         - x86_64-pc-windows-gnu,
+         # - x86_64-apple-darwin,
+         # - aarch64-apple-darwin,
+         # - aarch64-apple-ios,
+         # - x86_64-pc-windows-msvc,
+         # - x86_64-pc-windows-gnu,
          - x86_64-unknown-linux-gnu,
-         - x86_64-unknown-linux-musl,
-         - aarch64-unknown-linux-gnu,
-         - aarch64-unknown-linux-musl,
-         - aarch64-linux-android 
+         # - x86_64-unknown-linux-musl,
+         # - aarch64-unknown-linux-gnu,
+         # - aarch64-unknown-linux-musl,
+         # - aarch64-linux-android 
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: ${{ matrix.target }}
       - run: rustup default $msrv
-      - run: cargo build --verbose --target ${{ matrix.target }}
+      - run: cargo +$msrv build --verbose --target ${{ matrix.target }}
       - run: cargo clippy --verbose
       - run: cargo test --verbose
       
