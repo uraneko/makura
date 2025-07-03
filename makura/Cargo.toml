@@ -48,11 +48,16 @@ bases_all = ["base64", "base64_url", "base45", "base32", "base32_hex", "base16"]
 # for documentation, 
 # docs.rs builds documentations in nightly + crate features documentation need nightly to be built
 nightly = []
+
 # opts in to the std library 
 # for logic that depends on std features, currently there is none
-std = []
+### not needed for now 
+# std = [] 
+
 # adds clap with derive and std features  as a dependency 
-clap = ["dep:clap"]
+### no longer needed as FromStr is implemented for the Base enum
+# clap = ["dep:clap", "std"] 
+
 
 [dependencies]
-clap = { version = "4.5.40", features = ["std", "derive"], optional = true, default-features = false }
+# clap = { version = "4.5.40", features = ["std", "derive"], optional = true, default-features = false }

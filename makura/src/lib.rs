@@ -1,5 +1,5 @@
-#![cfg_attr(not(feature = "std"), no_std)]
-// #![no_std]
+#![no_std]
+// #![cfg_attr(not(feature = "std"), no_std)]
 #![doc(html_playground_url = "https://play.rust-lang.org/?version=stable&mode=debug&edition=2024")]
 #![cfg_attr(feature = "nightly", feature(doc_auto_cfg))]
 #![cfg_attr(feature = "nightly", feature(test))]
@@ -26,7 +26,7 @@ pub const BASE16: Base = Base::_16;
 pub const BASE45: Base = Base::_45;
 
 #[derive(PartialEq, Default, Clone, Copy, Ord, PartialOrd, Eq, Hash)]
-#[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
+// #[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
 pub enum Base {
     #[default]
     _64,
