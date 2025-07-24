@@ -1,51 +1,48 @@
 mod encoder {
-    use makura::Encoder;
+    use makura::Encode;
+    use makura::BASE45;
 
     #[test]
     fn test0() {
         let input = "AB";
-        let output = "BB8";
-        let enc = Encoder::base45();
+        let output = b"BB8";
+        
 
-        assert_eq!(enc.encode(input), output);
+        assert_eq!(input.encode(BASE45), output);
     }
 
     #[test]
     fn test1() {
         let input = "Hello!!";
-        let output = "%69 VD92EX0";
+        let output = b"%69 VD92EX0";
 
-        let enc = Encoder::base45();
+        
 
-        assert_eq!(enc.encode(input), output);
+        assert_eq!(input.encode(BASE45), output);
     }
 
     #[test]
     fn test2() {
         let input = "base-45";
-        let output = "UJCLQE7W581";
+        let output = b"UJCLQE7W581";
 
-        let enc = Encoder::base45();
+        
 
-        assert_eq!(enc.encode(input), output);
+        assert_eq!(input.encode(BASE45), output);
     }
 }
 
 mod decoder {
     use makura::BASE45;
-    use makura::Bases;
-    use makura::Decoder;
+    use makura::Decode;
 
     #[test]
     fn test0() {
         let output = "QED8WEX0";
-        let input = "ietf!";
+        let input = b"ietf!";
 
         assert_eq!(
-            Decoder::decode(output, BASE45)
-                .unwrap()
-                .into_utf8()
-                .unwrap(),
+            output.decode(BASE45).unwrap(),
             input
         );
     }

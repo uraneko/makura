@@ -7,136 +7,39 @@
 mod base_transformer;
 pub(crate) use base_transformer::BaseTransformer;
 
+mod bases;
+pub use bases::Bases;
+mod base;
+pub use base::Base;
+
+pub mod base_consts {
+    use super::base;
+
+    pub use base::{BASE16, BASE32, BASE32HEX, BASE45, BASE64, BASE64URL};
+}
+
+pub use base_consts::*;
+
 mod decoders;
 mod encoders;
 
-pub use decoders::Bases;
+pub use decoders::Decode;
 pub use decoders::DecodeError;
-pub use decoders::DecodeOutput;
-pub use decoders::Decoder;
-pub use encoders::Encoder;
+pub use decoders::DecodeResult;
+pub use encoders::Encode;
+
+pub mod encoding_checks {
+    use super::decoders;
+
+    pub use decoders::base16::{base16_decode, chars_are_16, is_valid_16_len};
+    pub use decoders::base32::{base32_decode, chars_are_32, is_valid_32_len, is_valid_32_padding};
+    pub use decoders::base32::{base32_hex_decode, chars_are_32hex, is_valid_32hex_padding};
+    pub use decoders::base45::{base45_decode, chars_are_45, is_valid_45_len};
+    pub use decoders::base64::{base64_decode, chars_are_64, is_valid_64_len, is_valid_64_padding};
+    pub use decoders::base64::{base64_url_decode, chars_are_64url, is_valid_64url_padding};
+}
 
 pub(crate) const PAD: char = '=';
-
-pub const BASE64: Base = Base::_64;
-pub const BASE64URL: Base = Base::_64URL;
-pub const BASE32: Base = Base::_32;
-pub const BASE32HEX: Base = Base::_32HEX;
-pub const BASE16: Base = Base::_16;
-pub const BASE45: Base = Base::_45;
-
-#[derive(PartialEq, Default, Clone, Copy, Ord, PartialOrd, Eq, Hash)]
-// #[cfg_attr(feature = "clap", derive(clap::ValueEnum))]
-pub enum Base {
-    #[default]
-    _64,
-    _64URL,
-    _45,
-    _32,
-    _32HEX,
-    _16,
-}
-
-impl core::fmt::Debug for Base {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::_64 => "Base64",
-                Self::_64URL => "Base64URL",
-                Self::_45 => "Base45",
-                Self::_32 => "Base32",
-                Self::_32HEX => "Base32HEX",
-                Self::_16 => "Base16",
-            }
-        )
-    }
-}
-
-impl core::fmt::Display for Base {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::_64 => "Base64",
-                Self::_64URL => "Base64URL",
-                Self::_45 => "Base45",
-                Self::_32 => "Base32",
-                Self::_32HEX => "Base32HEX",
-                Self::_16 => "Base16",
-            }
-        )
-    }
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum BaseError {
-    InvalidStrBaseValue,
-}
-
-impl core::fmt::Display for BaseError {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        write!(
-            f,
-            "{}",
-            match self {
-                Self::InvalidStrBaseValue =>
-                    "Received invalid string value for base name, string base name should be one of [64, 64URL, 45, 32, 32HEX, 16]",
-            }
-        )
-    }
-}
-
-impl core::error::Error for BaseError {}
-
-impl core::str::FromStr for Base {
-    type Err = BaseError;
-
-    fn from_str(value: &str) -> Result<Self, Self::Err> {
-        match value {
-            "64" => Ok(BASE64),
-            "64url" => Ok(BASE64URL),
-            "45" => Ok(BASE45),
-            "32" => Ok(BASE32),
-            "32hex" => Ok(BASE32HEX),
-            "16" => Ok(BASE16),
-            _ => Err(BaseError::InvalidStrBaseValue),
-        }
-    }
-}
-
-impl Base {
-    // first 26 values of base encoding table are the uppercase alphabet letters A -> Z
-    fn alpha_26(&self) -> bool {
-        self == &Self::_64 || self == &Self::_64URL || self == &Self::_32
-    }
-
-    // first 16 values in the base encoding table are the base 16 numbers 0 -> F
-    fn hex_16(&self) -> bool {
-        self == &Self::_32HEX || self == &Self::_16
-    }
-
-    // base is 64 or 64 url
-    fn is_any_64(&self) -> bool {
-        self == &Self::_64 || self == &Self::_64URL
-    }
-
-    // base is strictly 32
-    fn is_32(&self) -> bool {
-        self == &Self::_32
-    }
-
-    // base is strictly 32 hex
-    fn is_32_hex(&self) -> bool {
-        self == &Self::_32HEX
-    }
-
-    fn is_45(&self) -> bool {
-        self == &Self::_45
-    }
-}
 
 pub(crate) fn char_from_idx(idx: u8, base: &Base) -> char {
     // NOTE handled by the panic below
@@ -283,7 +186,7 @@ pub(crate) fn char_from_idx(idx: u8, base: &Base) -> char {
     }
 }
 
-pub(crate) fn idx_from_char(chr: char, base: &Base) -> Result<u8, DecodeError> {
+pub(crate) fn idx_from_char(chr: char, base: Base) -> Result<u8, DecodeError> {
     match chr {
         // alpha
         'A' if base.alpha_26() => Ok(0),
@@ -351,12 +254,12 @@ pub(crate) fn idx_from_char(chr: char, base: &Base) -> Result<u8, DecodeError> {
         '9' if base.is_any_64() => Ok(61),
 
         // NOTE base 64 is done with this
-        '+' if base == &Base::_64 => Ok(62),
-        '/' if base == &Base::_64 => Ok(63),
+        '+' if base == Base::_64 => Ok(62),
+        '/' if base == Base::_64 => Ok(63),
 
         // NOTE base 64 url is done with this
-        '-' if base == &Base::_64URL => Ok(62),
-        '_' if base == &Base::_64URL => Ok(63),
+        '-' if base == Base::_64URL => Ok(62),
+        '_' if base == Base::_64URL => Ok(63),
 
         // NOTE base 32 is done with this
         '2' if base.is_32() => Ok(26),
@@ -418,10 +321,7 @@ pub(crate) fn idx_from_char(chr: char, base: &Base) -> Result<u8, DecodeError> {
         ':' if base.is_45() => Ok(44),
 
         // _ => panic!("got impossile table char {} for base {:?}", chr, base),
-        ch => Err(DecodeError::InvalidChar {
-            char: ch,
-            base: *base,
-        }),
+        ch => Err(DecodeError::InvalidChar { char: ch, base }),
     }
 }
 
@@ -429,7 +329,7 @@ pub(crate) mod makura_alloc {
     extern crate alloc;
     pub(crate) use alloc::borrow::Cow;
     pub(crate) use alloc::collections::BTreeSet;
-    pub(crate) use alloc::string::String;
+    pub(crate) use alloc::string::{String, ToString};
     pub(crate) use alloc::{vec, vec::Vec};
 }
 
@@ -442,8 +342,8 @@ pub(crate) mod makura_core {
 mod tests {
     use core::assert;
 
+    use super::base_consts::{BASE16, BASE32, BASE45, BASE64};
     use super::char_from_idx;
-    use super::{BASE16, BASE32, BASE45, BASE64};
 
     #[test]
     #[should_panic]

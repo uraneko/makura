@@ -1,57 +1,53 @@
 mod encoder {
-    use makura::Encoder;
+    use makura::Encode;
+    use makura::{BASE64, BASE64URL};
 
     #[test]
     fn test0() {
         let input = "";
-        let output = "";
-        let enc = Encoder::base64_url();
+        let output = b"";
 
-        assert_eq!(enc.encode(input), output);
+        assert_eq!(input.encode(BASE64URL), output);
     }
 
     #[test]
     fn test1() {
         let input = "🍜";
-        let output = "8J-NnA==";
-        let enc = Encoder::base64_url();
+        let output = b"8J-NnA==";
 
-        assert_eq!(enc.encode(input), output);
+        assert_eq!(input.encode(BASE64URL), output);
     }
 
     #[test]
     fn test2() {
         let input = "🍔";
-        let output = "8J-NlA==";
-        let enc = Encoder::base64_url();
+        let output = b"8J-NlA==";
 
-        assert_eq!(enc.encode(input), output);
+        assert_eq!(input.encode(BASE64URL), output);
     }
 
     #[test]
     fn test3() {
         let input = "🍜🍔?";
-        let output = "8J-NnPCfjZQ_";
-        let enc = Encoder::base64_url();
+        let output = b"8J-NnPCfjZQ_";
 
-        assert_eq!(enc.encode(input), output)
+        assert_eq!(input.encode(BASE64URL), output)
     }
 
     #[test]
     #[should_panic]
     fn fail_b64() {
         let input = "🍜";
-        let output = "8J-NnA==";
-        let enc = Encoder::base64();
+        let output = b"8J-NnA==";
 
-        assert_eq!(enc.encode(input), output);
+        assert_eq!(input.encode(BASE64), output);
     }
 }
 
 mod decoder {
     use makura::BASE64URL;
     use makura::Bases;
-    use makura::Decoder;
+    use makura::Decode;
 
     // NOTE base64 and base64 url differ at these two char points 62 (+ | -), 63 (/ | _)
     // 64 url can only be tested on an encoded value that contains either - or _
@@ -84,7 +80,7 @@ mod decoder {
         let output = "8J-NnA==";
 
         assert_eq!(
-            Decoder::decode_deduce(output).unwrap().into_utf8().unwrap(),
+            str::from_utf8(&output.decode_deduce().unwrap()).unwrap(),
             input
         );
     }
@@ -95,7 +91,7 @@ mod decoder {
         let output = "8J-NnPCfjZQ_";
 
         assert_eq!(
-            Decoder::decode_deduce(output).unwrap().into_utf8().unwrap(),
+            str::from_utf8(&output.decode_deduce().unwrap()).unwrap(),
             input
         )
     }

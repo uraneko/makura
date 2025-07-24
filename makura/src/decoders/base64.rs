@@ -95,7 +95,7 @@ pub fn is_valid_64_len(len: usize) -> Result<(), DecodeError> {
 // this fn expects pads to be a valid base64 padding value
 pub fn is_valid_64_padding(last_byte: u8, pads: u8) -> Result<(), DecodeError> {
     let char = last_byte as char;
-    let last_byte = idx_from_char(char, &BASE64);
+    let last_byte = idx_from_char(char, BASE64);
     if last_byte.is_err() {
         return last_byte.map(|_| ());
     }
@@ -117,7 +117,7 @@ pub fn is_valid_64_padding(last_byte: u8, pads: u8) -> Result<(), DecodeError> {
 // do their checks on that
 pub fn is_valid_64url_padding(last_byte: u8, pads: u8) -> Result<(), DecodeError> {
     let char = last_byte as char;
-    let last_byte = idx_from_char(char, &BASE64URL);
+    let last_byte = idx_from_char(char, BASE64URL);
     if last_byte.is_err() {
         return last_byte.map(|_| ());
     }

@@ -98,7 +98,7 @@ pub fn is_valid_32_len(len: usize) -> Result<(), DecodeError> {
 
 pub fn is_valid_32hex_padding(last_byte: u8, pads: u8) -> Result<(), DecodeError> {
     let char = last_byte as char;
-    let last_byte = idx_from_char(char, &BASE32HEX);
+    let last_byte = idx_from_char(char, BASE32HEX);
     if last_byte.is_err() {
         return last_byte.map(|_| ());
     }
@@ -120,7 +120,7 @@ pub fn is_valid_32hex_padding(last_byte: u8, pads: u8) -> Result<(), DecodeError
 
 pub fn is_valid_32_padding(last_byte: u8, pads: u8) -> Result<(), DecodeError> {
     let char = last_byte as char;
-    let last_byte = idx_from_char(char, &BASE32);
+    let last_byte = idx_from_char(char, BASE32);
     if last_byte.is_err() {
         return last_byte.map(|_| ());
     }

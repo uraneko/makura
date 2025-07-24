@@ -36,8 +36,8 @@ use crate::{BASE32, BASE32HEX};
 
 // separates the input string into chunks of 24bits
 // bytes_of_u40
-fn into_40bits_chunks(data: &str) -> Vec<u64> {
-    let mut bytes = data.as_bytes().chunks(5);
+fn into_40bits_chunks(data: &[u8]) -> Vec<u64> {
+    let mut bytes = data.chunks(5);
     // println!("{:?}", bytes.clone().collect::<Vec<&[u8]>>());
     let last = bytes.next_back().unwrap();
 
@@ -98,7 +98,7 @@ fn into_5bits_bytes(bytes: Vec<u64>) -> Vec<u8> {
         .collect()
 }
 
-fn into_base32(bytes: Vec<u8>) -> String {
+fn into_base32(bytes: Vec<u8>) -> Vec<u8>{
     let bytes = bytes.into_iter();
 
     let mut cd = 6;
@@ -108,19 +108,19 @@ fn into_base32(bytes: Vec<u8>) -> String {
         .map(|b| {
             if cd > 0 && pad && b == 0 {
                 cd -= 1;
-                '='
+                b'='
             } else {
                 pad = false;
-                char_from_idx(b, &BASE32)
+                char_from_idx(b, &BASE32) as u8
             }
         })
-        .collect::<Vec<char>>()
+        .collect::<Vec<u8>>()
         .into_iter()
         .rev()
         .collect()
 }
 
-fn into_base32_hex(bytes: Vec<u8>) -> String {
+fn into_base32_hex(bytes: Vec<u8>) -> Vec<u8> {
     let bytes = bytes.into_iter();
 
     // FIXME the table needs to have all values
@@ -132,22 +132,22 @@ fn into_base32_hex(bytes: Vec<u8>) -> String {
         .map(|b| {
             if cd > 0 && pad && b == 0 {
                 cd -= 1;
-                '='
+                b'='
             } else {
                 pad = false;
-                char_from_idx(b, &BASE32HEX)
+                char_from_idx(b, &BASE32HEX) as u8
             }
         })
-        .collect::<Vec<char>>()
+        .collect::<Vec<u8>>()
         .into_iter()
         .rev()
         .collect()
 }
 
 #[cfg(feature = "base32")]
-pub fn base32_encode<T>(value: T) -> String
+pub fn base32_encode<T>(value: T) -> Vec<u8>
 where
-    T: AsRef<str>,
+    T: AsRef<[u8]>,
 {
     let value = value.as_ref();
     if value.is_empty() {
@@ -161,9 +161,9 @@ where
 }
 
 #[cfg(feature = "base32_hex")]
-pub fn base32_hex_encode<T>(value: T) -> String
+pub fn base32_hex_encode<T>(value: T) -> Vec<u8>
 where
-    T: AsRef<str>,
+    T: AsRef<[u8]>,
 {
     let value = value.as_ref();
     if value.is_empty() {

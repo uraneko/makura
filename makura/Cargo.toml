@@ -4,6 +4,10 @@ version = "0.1.2"
 edition = "2024"
 rust-version = "1.85.0"
 
+[[bin]]
+name = "dev"
+path = "src/main.rs"
+
 [[test]]
 name = "base64"
 path = "tests/base64.rs"
@@ -29,12 +33,11 @@ name = "base16"
 path = "tests/base16.rs"
 
 [features]
-default = ["bases_all", "encoding_decoding"]
+default = ["bases", "encoding", "decoding"]
 
 # for enabling decoding/encoding 
 decoding = []
 encoding = []
-encoding_decoding = ["encoding", "decoding"]
 
 # for enabling the default bases
 base64 = []
@@ -43,7 +46,7 @@ base45 = []
 base32_hex = []
 base32 = []
 base16 = []
-bases_all = ["base64", "base64_url", "base45", "base32", "base32_hex", "base16"]
+bases = ["base64", "base64_url", "base45", "base32", "base32_hex", "base16"]
 
 # for documentation, 
 # docs.rs builds documentations in nightly + crate features documentation need nightly to be built
@@ -54,10 +57,10 @@ nightly = []
 ### not needed for now 
 # std = [] 
 
-# adds clap with derive and std features  as a dependency 
-### no longer needed as FromStr is implemented for the Base enum
-# clap = ["dep:clap", "std"] 
-
+### enables the serde dependent logic 
+serde = ["dep:serde", "dep:serde_json"]
+extends = []
 
 [dependencies]
-# clap = { version = "4.5.40", features = ["std", "derive"], optional = true, default-features = false }
+serde = { version = "1.0.219", features = ["derive"], optional = true }
+serde_json = { version = "1.0.140", optional = true } 
