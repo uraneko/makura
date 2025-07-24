@@ -489,8 +489,9 @@ mod test_errors {
     }
 
     #[test]
+    #[cfg(feature = "serde")]
     fn utf8_error() {
-        let input = "AB";
+        let input = [65,66];
 
         let Err(DecodeError::Utf8Error(e)) = input.decode(BASE16) else {
             unreachable!("input string is not proper base64 encoded, so how did it pass")

@@ -24,9 +24,11 @@ pub trait Encode {
 
     ///
     /// ```
+    /// use makura::{BASE64, Encode};
+    ///
     /// let s = "encode me senpai";
-    /// let e = s.encode::<String>();
-    /// println!("{}", e);
+    /// let e = s.encode(BASE64);
+    /// println!("{:?}", e);
     /// ```
     ///
     fn encode(&self, base: Base) -> Vec<u8> {

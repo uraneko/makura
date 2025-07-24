@@ -80,7 +80,7 @@ mod decoder {
         let output = "Zg==";
 
         assert_eq!(
-            str::from_utf8(&output.decode_deduce().unwrap()).unwrap(),
+            str::from_utf8(&output.decode(BASE64).unwrap()).unwrap(),
             input
         );
     }
@@ -91,7 +91,7 @@ mod decoder {
         let output = "Zm8=";
 
         assert_eq!(
-            str::from_utf8(&output.decode_deduce().unwrap()).unwrap(),
+            str::from_utf8(&output.decode(BASE64).unwrap()).unwrap(),
             input
         );
     }
@@ -102,7 +102,7 @@ mod decoder {
         let output = "Zm9v";
 
         assert_eq!(
-            str::from_utf8(&output.decode_deduce().unwrap()).unwrap(),
+            str::from_utf8(&output.decode(BASE64).unwrap()).unwrap(),
             input
         );
     }
@@ -113,7 +113,7 @@ mod decoder {
         let output = "Zm9vYg==";
 
         assert_eq!(
-            str::from_utf8(&output.decode_deduce().unwrap()).unwrap(),
+            str::from_utf8(&output.decode(BASE64).unwrap()).unwrap(),
             input
         );
     }
@@ -124,7 +124,7 @@ mod decoder {
         let output = "Zm9vYmE=";
 
         assert_eq!(
-            str::from_utf8(&output.decode_deduce().unwrap()).unwrap(),
+            str::from_utf8(&output.decode(BASE64).unwrap()).unwrap(),
             input
         );
     }
@@ -135,7 +135,7 @@ mod decoder {
         let output = "Zm9vYmFy";
 
         assert_eq!(
-            str::from_utf8(&output.decode_deduce().unwrap()).unwrap(),
+            str::from_utf8(&output.decode(BASE64).unwrap()).unwrap(),
             input
         );
     }

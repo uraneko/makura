@@ -1,3 +1,4 @@
+use crate::makura_alloc::Vec;
 use crate::{DecodeResult, DecodeError};
 use crate::encoding_checks::*;
 
@@ -221,10 +222,14 @@ impl Base {
     }
 }
 
-// trait ValidEncoding<B> where B: EncodingBase {
-//     
+// struct Bespoke {
+//     base: u8,
 // }
 //
-// trait EncodingBase {
-//
+// impl Bespoke {
+//     fn from_base10() {}
+//     fn to_base10() {}
+//     fn encode() {}
+//     fn decode() {}
 // }
+//

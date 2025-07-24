@@ -87,7 +87,7 @@ mod decoder {
         let output = "66";
 
         assert_eq!(
-            str::from_utf8(&output.decode_deduce().unwrap()).unwrap(),
+            str::from_utf8(&output.decode(BASE16).unwrap()).unwrap(),
             input
         );
     }

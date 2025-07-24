@@ -4,7 +4,7 @@ use std::path::PathBuf;
 use clap::{Args, Parser};
 
 use makura::{Base, Bases};
-use makura::{Decoder, Encoder};
+use makura::{Decode as Dec, Encode as Enc};
 
 fn main() -> Result<(), CLIError> {
     let res = match Makura::parse() {
@@ -22,6 +22,7 @@ fn main() -> Result<(), CLIError> {
 
 #[derive(Debug)]
 enum CLIError {
+    NotAValidUtf8String,
     CouldNotOpenFileForReading,
     NeedABaseToEncode,
     DecodeFailed,
@@ -116,12 +117,12 @@ impl CommandLauncher for Decode {
         let input = extract_input(self.file, self.input)?;
 
         if let Some(base) = self.base {
-            Decoder::decode(input, base)
-                .map(|res| res.into_utf8().unwrap())
+            input.decode( base)
+                .map(|res| String::from_utf8(res).unwrap())
                 .map_err(|e| CLIError::DecodeFailed)
         } else {
-            Decoder::decode_deduce(input)
-                .map(|res| res.into_utf8().unwrap())
+            input.decode_deduce()
+                .map(|res| String::from_utf8(res).unwrap())
                 .map_err(|e| CLIError::DecodeFailed)
         }
     }
@@ -151,7 +152,7 @@ impl CommandLauncher for Encode {
         //     return Err(CLIError::NeedABaseToEncode);
         // };
 
-        Ok(<Base as Into<Encoder>>::into(base).encode(input))
+        String::from_utf8(input.encode(base)).map_err(|_e| CLIError::NotAValidUtf8String)
         // .map(|res| res.into_utf8().unwrap())
         // .map_err(|e| CLIError::DecodeFailed)
     }
@@ -201,9 +202,9 @@ impl CommandLauncher for Recast {
         let input = extract_input(self.file, self.input)?;
 
         let input = if let Some(src_base) = self.src {
-            Decoder::decode(input, src_base)
+            input.decode(src_base)
         } else {
-            Decoder::decode_deduce(input)
+            input.decode_deduce()
         };
 
         if input.is_err() {
@@ -211,9 +212,8 @@ impl CommandLauncher for Recast {
                 .map(|_| String::new())
                 .map_err(|_| CLIError::DecodeFailed);
         }
-        let input = input.unwrap().into_utf8().unwrap();
-        let enc: Encoder = self.dest.into();
+        let input = String::from_utf8(input.unwrap()).unwrap();
 
-        Ok(enc.encode(input))
+        Ok(input.encode(self.dest)).map(|v| String::from_utf8(v).unwrap())
     }
 }
