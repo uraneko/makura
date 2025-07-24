@@ -46,7 +46,6 @@ mod encoder {
 
 mod decoder {
     use makura::BASE64URL;
-    use makura::Bases;
     use makura::Decode;
 
     // NOTE base64 and base64 url differ at these two char points 62 (+ | -), 63 (/ | _)
@@ -63,7 +62,7 @@ mod decoder {
         let input = "8J-NnA==";
         let base = BASE64URL;
 
-        assert_eq!(Bases::default().deduce_encoding(input).unwrap(), base);
+        assert_eq!(input.infer().unwrap(), base);
     }
 
     #[test]
@@ -71,7 +70,7 @@ mod decoder {
         let input = "8J-NnPCfjZQ_";
         let base = BASE64URL;
 
-        assert_eq!(Bases::default().deduce_encoding(input).unwrap(), base);
+        assert_eq!(input.infer().unwrap(), base);
     }
 
     #[test]

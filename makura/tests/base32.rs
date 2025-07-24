@@ -68,7 +68,6 @@ mod encoder {
 
 mod decoder {
     use makura::BASE32;
-    use makura::Bases;
     use makura::Decode;
 
     #[test]
@@ -125,7 +124,6 @@ mod decoder {
     fn test5() {
         let input = b"fooba";
         let output = "MZXW6YTB";
-        println!("{}", Bases::default().deduce_sorted(output).unwrap());
         assert_eq!(
             output.decode(BASE32).unwrap(),
             input

@@ -7,8 +7,6 @@
 mod base_transformer;
 pub(crate) use base_transformer::BaseTransformer;
 
-mod bases;
-pub use bases::Bases;
 mod base;
 pub use base::Base;
 

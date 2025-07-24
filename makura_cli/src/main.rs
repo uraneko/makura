@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 use clap::{Args, Parser};
 
-use makura::{Base, Bases};
+use makura::Base;
 use makura::{Decode as Dec, Encode as Enc};
 
 fn main() -> Result<(), CLIError> {
@@ -117,11 +117,13 @@ impl CommandLauncher for Decode {
         let input = extract_input(self.file, self.input)?;
 
         if let Some(base) = self.base {
-            input.decode( base)
+            input
+                .decode(base)
                 .map(|res| String::from_utf8(res).unwrap())
                 .map_err(|e| CLIError::DecodeFailed)
         } else {
-            input.decode_deduce()
+            input
+                .decode_deduce()
                 .map(|res| String::from_utf8(res).unwrap())
                 .map_err(|e| CLIError::DecodeFailed)
         }
@@ -171,9 +173,9 @@ impl CommandLauncher for Deduce {
     fn run(self) -> Result<String, CLIError> {
         let input = extract_input(self.file, self.input)?;
 
-        Bases::default()
-            .deduce_encoding(&input)
-            .map_err(|e| CLIError::DeduceFailed)
+        input
+            .infer()
+            .map_err(|_e| CLIError::DeduceFailed)
             .map(|b| b.to_string())
     }
 }

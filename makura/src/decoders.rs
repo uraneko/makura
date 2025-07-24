@@ -1,5 +1,5 @@
 #![cfg(feature = "decoding")]
-use crate::{Base, Bases, encoding_checks::*, idx_from_char};
+use crate::{Base, encoding_checks::*, idx_from_char};
 use crate::{
     makura_alloc::{BTreeSet, Cow, String, ToString, Vec, vec},
     makura_core::Utf8Error,
@@ -46,7 +46,7 @@ pub trait Decode {
     /// this method always returns an error if there is more than 1 valid base
     /// it doesnt do estimations or guesses, only definitive answers
     fn deduce(&self) -> DecodeResult<Base> {
-        let mut value = self.to_bytes();
+        let value = self.to_bytes();
 
         // fuzzing input = "=" panics
         // if value.iter().all(|b| *b == 61) {
@@ -59,29 +59,68 @@ pub trait Decode {
 
         let (last, len, pads) = input_meta(&mut value.as_slice());
 
-        let mut bases: Bases = Bases::default()
-            .bases()
+        let mut bases = BASES
             .into_iter()
             .filter(|b| {
                 b.is_valid_len(len).is_ok()
                     && b.is_valid_padding(last, pads).is_ok()
                     && b.are_valid_chars(&value).is_ok()
             })
-            .collect::<Vec<Base>>()
-            .into();
+            .collect::<Vec<Base>>();
 
         if bases.is_empty() {
             return Err(DecodeError::ZeroValidEncodings);
         } else if bases.len() == 1 {
-            return bases
-                .bases_mut()
-                .pop_first()
-                .ok_or(unsafe { core::mem::zeroed() });
+            return bases.pop().ok_or(unsafe { core::mem::zeroed() });
         }
 
         Err(DecodeError::TooManyValidEncodings {
             bases: bases.into(),
         })
+    }
+
+    /// same as deduce but this method will not error out
+    /// when it finds more than 1 valid encoding
+    ///
+    /// instead, it will take the first encoding in the slice as the correct encoding
+    ///
+    /// basically this considers the passed bases to be sorted
+    /// and the least values (bases[0], base[1]...) as the most likely correct answer
+    fn infer(&self) -> Result<Base, DecodeError> {
+        let value = self.to_bytes();
+
+        // fuzzing input = "=" panics
+        // if value.iter().all(|b| *b == 61) {
+        //     return Err(DecodeError::ZeroValidEncodings);
+        // }
+
+        if value.is_empty() {
+            return Ok(BASE64);
+        }
+
+        let (last, len, pads) = input_meta(&mut value.as_slice());
+
+        let mut bases = BASES
+            .into_iter()
+            .filter(|b| {
+                b.is_valid_len(len).is_ok()
+                    && b.is_valid_padding(last, pads).is_ok()
+                    && b.are_valid_chars(&value).is_ok()
+            })
+            .collect::<Vec<Base>>();
+
+        if bases.is_empty() {
+            return Err(DecodeError::ZeroValidEncodings);
+        } else if bases.len() == 1 {
+            return bases.pop().ok_or(unsafe { core::mem::zeroed() });
+        } else if bases.len() == 2 && bases.contains(&BASE64) && bases.contains(&BASE64URL) {
+            // WARN it is pretty common to have both base64 and 64url remain together
+            // since '/' is very rare and '+' is a bit less rarer
+            // we prioritize base64
+            return Ok(BASE64);
+        }
+
+        Ok(bases.remove(0))
     }
 
     /// decodes a given string
@@ -211,12 +250,6 @@ pub trait DecodeExt: Decode {
     }
 }
 
-
-
-
-
-
-
 /// errors that can occur during the decoding process of some base encoded input value
 #[derive(Debug, PartialEq, Clone)]
 pub enum DecodeError {
@@ -338,7 +371,9 @@ pub mod chars_range {
 // this module benchmarks different versions of the deduce_encoding Decoder function
 mod bench_deduce_encoding {
     extern crate test;
+    use super::Decode;
     use crate::Encode;
+    use crate::makura_alloc::String;
     use crate::makura_alloc::Vec;
     use crate::{BASE16, BASE32, BASE32HEX, BASE45, BASE64, BASE64URL};
 
@@ -358,21 +393,23 @@ mod bench_deduce_encoding {
     #[bench]
     fn bench_deduce_012(b: &mut Bencher) {
         let encs = [
-            DATA.encode(BASE64),
-            DATA.encode(BASE64URL),
-            DATA.encode(BASE45),
-            DATA.encode(BASE32),
-            DATA.encode(BASE32HEX),
-            DATA.encode(BASE16),
+            String::from_utf8(DATA.encode(BASE64)).unwrap(),
+            String::from_utf8(DATA.encode(BASE64URL)).unwrap(),
+            String::from_utf8(DATA.encode(BASE45)).unwrap(),
+            String::from_utf8(DATA.encode(BASE32)).unwrap(),
+            String::from_utf8(DATA.encode(BASE32HEX)).unwrap(),
+            String::from_utf8(DATA.encode(BASE16)).unwrap(),
         ];
 
         b.iter(|| {
             encs.iter().for_each(|e| {
-                super::Bases::deduce_default(&e).unwrap();
+                e.infer().unwrap();
             })
         });
     }
 }
+
+const BASES: [Base; 6] = [BASE64, BASE64URL, BASE45, BASE32, BASE32HEX, BASE16];
 
 /// this module tests that the decoding errors happen as intended when they are supposed to
 #[cfg(test)]
@@ -380,12 +417,12 @@ mod test_errors {
     use super::into_table_idx;
     use super::vec;
     use super::{BASE16, BASE32, BASE32HEX, BASE64, BASE64URL};
-    use super::{DecodeError, Decode};
+    use super::{Decode, DecodeError};
 
     #[test]
     fn zero_valid_encodings() {
         let input = "@";
-        let Err(e) = super::Bases::default().deduce_encoding(input) else {
+        let Err(e) = input.deduce() else {
             unreachable!("input string is not proper base64 encoded, so how did it pass")
         };
 
@@ -398,7 +435,7 @@ mod test_errors {
     // TODO account for zeroes when less than 1 chunk exists in decoded input
     fn too_many_valid_encodings() {
         let output = "AA==";
-        let Err(e) = super::Bases::default().deduce_encoding(output) else {
+        let Err(e) = output.deduce() else {
             unreachable!("this should have been an error");
         };
 
@@ -441,7 +478,7 @@ mod test_errors {
     #[test]
     fn invalid_padding() {
         let output = "AAA=====";
-        let Err(e) = output.decode( BASE32) else {
+        let Err(e) = output.decode(BASE32) else {
             unreachable!("this should have been an error");
         };
 
@@ -458,7 +495,7 @@ mod test_errors {
     fn invalid_char() {
         // let input = "VT09PQ==";
         let input = "VT";
-        let Err(e) = input.decode( BASE16) else {
+        let Err(e) = input.decode(BASE16) else {
             unreachable!("input string is not proper base64 encoded, so how did it pass")
         };
 
@@ -474,7 +511,7 @@ mod test_errors {
     #[test]
     fn invalid_last_char_for_padding() {
         let output = "AAAD====";
-        let Err(e) = output.decode( BASE32) else {
+        let Err(e) = output.decode(BASE32) else {
             unreachable!("this should have been an error");
         };
 
@@ -491,7 +528,7 @@ mod test_errors {
     #[test]
     #[cfg(feature = "serde")]
     fn utf8_error() {
-        let input = [65,66];
+        let input = [65, 66];
 
         let Err(DecodeError::Utf8Error(e)) = input.decode(BASE16) else {
             unreachable!("input string is not proper base64 encoded, so how did it pass")

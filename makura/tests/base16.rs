@@ -65,7 +65,6 @@ mod encoder {
 
 mod decoder {
     use makura::BASE16;
-    use makura::Bases;
     use makura::Decode;
 
     #[test]
@@ -73,7 +72,7 @@ mod decoder {
         let input = "";
         let output = "";
 
-        let enc = Bases::deduce_default(input).unwrap();
+        let enc = input.infer().unwrap();
 
         assert_eq!(
             str::from_utf8(&output.decode(enc).unwrap()).unwrap(),
