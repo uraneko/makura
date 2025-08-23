@@ -22,9 +22,11 @@ This is the workspace repo for the multi-base encoding/decoding makura crates.
 
 ###
 ### MSRV
-Although the msrv is `rustc/cargo 1.85.0` , this crate should functionally work with earlier versions, as it shouldn't be using any new-ish rust features. 
-The high MSRV is due to the crate edition being `2024`. 
-If you need to run it on an older version of rust - I highly don't recommend it - then lowering the rust `package.edition` key in the Cargo.toml manifest should make it work (I didn't test this).
+1.85.0
+
+> [!NOTE]
+
+> Should raise MSRV
 
 ###
 ### License
