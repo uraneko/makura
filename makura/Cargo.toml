@@ -35,7 +35,7 @@ path = "tests/base16.rs"
 [features]
 default = ["bases", "encoding", "decoding"]
 
-# for enabling decoding/encoding 
+# for enabling decoding/encoding logic
 decoding = []
 encoding = []
 
@@ -54,11 +54,12 @@ nightly = []
 
 # opts in to the std library 
 # for logic that depends on std features, currently there is none
-### not needed for now 
 # std = [] 
 
 ### enables the serde dependent logic 
 serde = ["dep:serde", "dep:serde_json"]
+
+## encoding/decoding additional methods
 extends = []
 
 [dependencies]

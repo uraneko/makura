@@ -34,12 +34,12 @@ pub trait Encode {
     fn encode(&self, base: Base) -> Vec<u8> {
         let input = self.to_bytes();
         match base {
-            Base::_64 => base64_encode(input),
-            Base::_64URL => base64_url_encode(input),
-            Base::_45 => base45_encode(input),
-            Base::_32 => base32_encode(input),
-            Base::_32HEX => base32_hex_encode(input),
-            Base::_16 => base16_encode(input),
+            Base::_64 => base64_encode(&input),
+            Base::_64URL => base64_url_encode(&input),
+            Base::_45 => base45_encode(&input),
+            Base::_32 => base32_encode(&input),
+            Base::_32HEX => base32_hex_encode(&input),
+            Base::_16 => base16_encode(&input),
         }
     }
 }
@@ -61,6 +61,20 @@ where
 {
     fn to_bytes(&self) -> Vec<u8> {
         self.to_string().into_bytes()
+    }
+}
+
+#[cfg(not(feature = "serde"))]
+impl Encode for Vec<u8> {
+    fn to_bytes(&self) -> Vec<u8> {
+        self.as_slice()
+    }
+}
+
+#[cfg(not(feature = "serde"))]
+impl Encode for &[u8] {
+    fn as_bytes(&self) -> Vec<u8> {
+        self.to_vec()
     }
 }
 

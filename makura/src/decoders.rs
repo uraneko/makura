@@ -176,12 +176,12 @@ pub trait Decode {
         };
 
         Ok(match base {
-            BASE64 => base64_decode(indices),
-            BASE64URL => base64_url_decode(indices),
-            BASE45 => base45_decode(indices),
-            BASE32 => base32_decode(indices),
-            BASE32HEX => base32_hex_decode(indices),
-            BASE16 => base16_decode(indices),
+            BASE64 => base64_decode(&indices),
+            BASE64URL => base64_url_decode(&indices),
+            BASE45 => base45_decode(&indices),
+            BASE32 => base32_decode(&indices),
+            BASE32HEX => base32_hex_decode(&indices),
+            BASE16 => base16_decode(&indices),
         })
     }
 
@@ -262,6 +262,11 @@ pub enum DecodeError {
     ///
     /// this variant simply passes on the error value from the alloc::string::String::from_utf8
     /// String method
+    // TODO remove this, makes no sense
+    // out of scope of an encoder/decoder; which is what this is
+    #[deprecated(
+        note = "input can be not utf8, rather it's one common use of b64 encoding (binary files encoding)"
+    )]
     Utf8Error(Utf8Error),
     /// string encoding is not any of the implemented base encodings
     /// i.e., it is not base 64, 64url, 45, 32, 32hex or 16 encoded

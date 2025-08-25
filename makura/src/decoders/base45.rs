@@ -13,7 +13,7 @@ use super::{
 // recorded panic input cases:
 // `2JY`
 // `2.Y`
-fn into_base45_values(bytes: Vec<u8>) -> Vec<u32> {
+fn into_base45_values(bytes: &[u8]) -> Vec<u32> {
     let mut chunks = bytes.chunks(3);
     let last = chunks.next_back().unwrap();
 
@@ -54,7 +54,7 @@ fn into_base265_values(value: Vec<u32>) -> Vec<u8> {
     bytes
 }
 
-pub fn base45_decode(indices: Vec<u8>) -> Vec<u8> {
+pub fn base45_decode(indices: &[u8]) -> Vec<u8> {
     let bytes = into_base45_values(indices);
 
     into_base265_values(bytes)

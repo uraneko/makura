@@ -4,7 +4,7 @@ use crate::makura_alloc::{String, Vec};
 use crate::BASE16;
 use crate::char_from_idx;
 
-fn into_4bits_bytes(bytes: Vec<u8>) -> Vec<u8> {
+fn into_4bits_bytes(bytes: &[u8]) -> Vec<u8> {
     let bytes = bytes.into_iter();
     // let mut last = bytes.next_back().unwrap();
 
@@ -18,7 +18,7 @@ fn into_base16(bytes: Vec<u8>) -> Vec<u8> {
         .collect::<Vec<u8>>()
 }
 
-pub fn base16_encode(value: Vec<u8>) -> Vec<u8> {
+pub fn base16_encode(value: &[u8]) -> Vec<u8> {
     if value.is_empty() {
         return Vec::new();
     }

@@ -98,7 +98,7 @@ fn into_5bits_bytes(bytes: Vec<u64>) -> Vec<u8> {
         .collect()
 }
 
-fn into_base32(bytes: Vec<u8>) -> Vec<u8>{
+fn into_base32(bytes: Vec<u8>) -> Vec<u8> {
     let bytes = bytes.into_iter();
 
     let mut cd = 6;
@@ -145,10 +145,7 @@ fn into_base32_hex(bytes: Vec<u8>) -> Vec<u8> {
 }
 
 #[cfg(feature = "base32")]
-pub fn base32_encode<T>(value: T) -> Vec<u8>
-where
-    T: AsRef<[u8]>,
-{
+pub fn base32_encode(value: &[u8]) -> Vec<u8> {
     let value = value.as_ref();
     if value.is_empty() {
         return "".into();
@@ -161,10 +158,7 @@ where
 }
 
 #[cfg(feature = "base32_hex")]
-pub fn base32_hex_encode<T>(value: T) -> Vec<u8>
-where
-    T: AsRef<[u8]>,
-{
+pub fn base32_hex_encode(value: &[u8]) -> Vec<u8> {
     let value = value.as_ref();
     if value.is_empty() {
         return "".into();

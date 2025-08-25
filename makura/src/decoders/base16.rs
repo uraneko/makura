@@ -7,7 +7,7 @@ use super::{
     chars_range::{HEX, NUM},
 };
 
-fn into_8bits_bytes(value: Vec<u8>) -> Vec<u8> {
+fn into_8bits_bytes(value: &[u8]) -> Vec<u8> {
     value
         .chunks(2)
         .map(|b| {
@@ -21,7 +21,7 @@ fn into_8bits_bytes(value: Vec<u8>) -> Vec<u8> {
         .collect()
 }
 
-pub fn base16_decode(indices: Vec<u8>) -> Vec<u8> {
+pub fn base16_decode(indices: &[u8]) -> Vec<u8> {
     into_8bits_bytes(indices)
 }
 

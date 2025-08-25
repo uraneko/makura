@@ -53,23 +53,27 @@ fn into_6bits_bytes(bytes: Vec<u32>) -> Vec<u8> {
         .collect()
 }
 
-fn into_base64(bytes: Vec<u8>) -> Vec<u8>{
+fn into_base64(bytes: Vec<u8>) -> Vec<u8> {
     let mut bytes = bytes.into_iter();
     let [last, before_last] = [bytes.next_back(), bytes.next_back()];
 
     // FIXME the table needs to have all values
-    let mut encoded = bytes.map(|b| char_from_idx(b, &BASE64) as u8).collect::<Vec<u8>>();
+    let mut encoded = bytes
+        .map(|b| char_from_idx(b, &BASE64) as u8)
+        .collect::<Vec<u8>>();
 
     match [before_last, last] {
         [Some(0), Some(0)] => encoded.extend([PAD as u8, PAD as u8]),
         [Some(b0), Some(0)] => encoded.extend([char_from_idx(b0, &BASE64) as u8, PAD as u8]),
         [Some(b0), None] => encoded.push(char_from_idx(b0, &BASE64) as u8),
-        [Some(0), Some(b1)] => {
-            encoded.extend([char_from_idx(0, &BASE64) as u8, char_from_idx(b1, &BASE64) as u8])
-        }
-        [Some(b0), Some(b1)] => {
-            encoded.extend([char_from_idx(b0, &BASE64) as u8, char_from_idx(b1, &BASE64) as u8])
-        }
+        [Some(0), Some(b1)] => encoded.extend([
+            char_from_idx(0, &BASE64) as u8,
+            char_from_idx(b1, &BASE64) as u8,
+        ]),
+        [Some(b0), Some(b1)] => encoded.extend([
+            char_from_idx(b0, &BASE64) as u8,
+            char_from_idx(b1, &BASE64) as u8,
+        ]),
         [None, None] => unreachable!("empty vector quit is much earlier"),
         [None, Some(_)] => unreachable!("cant find more data after the end"),
     }
@@ -94,12 +98,14 @@ fn into_base64_url(bytes: Vec<u8>) -> Vec<u8> {
         [Some(0), Some(0)] => encoded.extend([PAD as u8, PAD as u8]),
         [Some(b0), Some(0)] => encoded.extend([char_from_idx(b0, &BASE64URL) as u8, PAD as u8]),
         [Some(b0), None] => encoded.push(char_from_idx(b0, &BASE64URL) as u8),
-        [Some(0), Some(b1)] => {
-            encoded.extend([char_from_idx(0, &BASE64URL) as u8, char_from_idx(b1, &BASE64URL) as u8])
-        }
-        [Some(b0), Some(b1)] => {
-            encoded.extend([char_from_idx(b0, &BASE64URL)  as u8, char_from_idx(b1, &BASE64URL) as u8])
-        }
+        [Some(0), Some(b1)] => encoded.extend([
+            char_from_idx(0, &BASE64URL) as u8,
+            char_from_idx(b1, &BASE64URL) as u8,
+        ]),
+        [Some(b0), Some(b1)] => encoded.extend([
+            char_from_idx(b0, &BASE64URL) as u8,
+            char_from_idx(b1, &BASE64URL) as u8,
+        ]),
         [None, None] => unreachable!("empty vector quit is much earlier"),
         [None, Some(_)] => unreachable!("cant find more data after the end"),
     }
@@ -112,10 +118,7 @@ fn into_base64_url(bytes: Vec<u8>) -> Vec<u8> {
 }
 
 #[cfg(feature = "base64")]
-pub fn base64_encode<T>(value: T) -> Vec<u8>
-where
-    T: AsRef<[u8]>,
-{
+pub fn base64_encode(value: &[u8]) -> Vec<u8> {
     let value = value.as_ref();
     if value.is_empty() {
         return "".into();
@@ -128,13 +131,10 @@ where
 }
 
 #[cfg(feature = "base64_url")]
-pub fn base64_url_encode<T>(value: T) -> Vec<u8>
-where
-    T: AsRef<[u8]>,
-{
+pub fn base64_url_encode(value: &[u8]) -> Vec<u8> {
     let value = value.as_ref();
     if value.is_empty() {
-        return Vec::new()
+        return Vec::new();
     }
 
     let chunks = into_24bits_chunks(value);

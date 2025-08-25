@@ -65,16 +65,15 @@ fn into_base45_bytes(bytes: Vec<u16>) -> Vec<u8> {
 fn into_base45(bytes: Vec<u8>) -> Vec<u8> {
     let bytes = bytes.into_iter();
 
-    bytes.map(|b| char_from_idx(b, &BASE45) as u8).collect::<Vec<u8>>()
+    bytes
+        .map(|b| char_from_idx(b, &BASE45) as u8)
+        .collect::<Vec<u8>>()
 }
 
-pub fn base45_encode<T>(value: T) -> Vec<u8>
-where
-    T: AsRef<[u8]>,
-{
+pub fn base45_encode(value: &[u8]) -> Vec<u8> {
     let value = value.as_ref();
     if value.is_empty() {
-        return Vec::new() 
+        return Vec::new();
     }
 
     let chunks = into_16bits_chunks(value);

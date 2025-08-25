@@ -25,7 +25,7 @@ use super::{
 // to implement the other decoders
 // only a different version of this function is needed
 // the other functions stay the same
-fn into_24bits_bytes(value: Vec<u8>) -> Vec<u32> {
+fn into_24bits_bytes(value: &[u8]) -> Vec<u32> {
     // NOTE len must be an integra multiple of 4
     value
         .chunks(4)
@@ -65,14 +65,14 @@ fn into_8bits_bytes(value: Vec<u32>) -> Vec<u8> {
 }
 
 #[cfg(feature = "base64")]
-pub fn base64_decode(indices: Vec<u8>) -> Vec<u8> {
+pub fn base64_decode(indices: &[u8]) -> Vec<u8> {
     let bytes = into_24bits_bytes(indices);
 
     into_8bits_bytes(bytes)
 }
 
 #[cfg(feature = "base64_url")]
-pub fn base64_url_decode(indices: Vec<u8>) -> Vec<u8> {
+pub fn base64_url_decode(indices: &[u8]) -> Vec<u8> {
     let bytes = into_24bits_bytes(indices);
 
     into_8bits_bytes(bytes)
