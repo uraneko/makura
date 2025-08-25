@@ -10,12 +10,11 @@ mod base32;
 mod base45;
 mod base64;
 
-use base16::base16_encode;
-use base32::base32_encode;
-use base32::base32_hex_encode;
-use base45::base45_encode;
-use base64::base64_encode;
-use base64::base64_url_encode;
+pub(crate) use base32::base32_encode;
+pub(crate) use base32::base32_hex_encode;
+pub(crate) use base45::base45_encode;
+pub(crate) use base64::base64_encode;
+pub(crate) use base64::base64_url_encode;
 
 /// exposes feature enabled base encodings
 pub trait Encode {

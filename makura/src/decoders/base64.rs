@@ -8,7 +8,7 @@ use super::{
     idx_from_char,
 };
 
-/// DOCS
+/// From rfc
 /// last 3 octets
 /// (1) The final quantum of encoding input is an integral multiple of 24
 ///     bits; here, the final unit of encoded output will be an integral
@@ -25,7 +25,7 @@ use super::{
 // to implement the other decoders
 // only a different version of this function is needed
 // the other functions stay the same
-fn into_24bits_bytes(value: &[u8]) -> Vec<u32> {
+fn to_24bits_iter(value: &[u8]) -> impl core::iter::Iterator<Item = u32> {
     // NOTE len must be an integra multiple of 4
     value
         .chunks(4)
@@ -42,13 +42,11 @@ fn into_24bits_bytes(value: &[u8]) -> Vec<u32> {
 
             mask
         })
-        .collect()
 }
 
 // get back 8 bit bytes from the 24bits bytes
-fn into_8bits_bytes(value: Vec<u32>) -> Vec<u8> {
+fn to_octets_vec(value: impl core::iter::Iterator<Item = u32>) -> Vec<u8> {
     let mut bytes = value
-        .into_iter()
         .flat_map(|b| {
             [
                 ((b & 0xff0000) >> 16) as u8,
@@ -65,17 +63,17 @@ fn into_8bits_bytes(value: Vec<u32>) -> Vec<u8> {
 }
 
 #[cfg(feature = "base64")]
-pub fn base64_decode(indices: &[u8]) -> Vec<u8> {
-    let bytes = into_24bits_bytes(indices);
+pub fn base64_decode(buf: &[u8]) -> Vec<u8> {
+    let bytes = to_24bits_iter(buf);
 
-    into_8bits_bytes(bytes)
+    to_octets_vec(bytes)
 }
 
 #[cfg(feature = "base64_url")]
-pub fn base64_url_decode(indices: &[u8]) -> Vec<u8> {
-    let bytes = into_24bits_bytes(indices);
+pub fn base64_url_decode(buf: &[u8]) -> Vec<u8> {
+    let iter = to_24bits_iter(buf);
 
-    into_8bits_bytes(bytes)
+    to_octets_vec(iter)
 }
 
 pub fn is_valid_64_len(len: usize) -> Result<(), DecodeError> {
@@ -92,7 +90,7 @@ pub fn is_valid_64_len(len: usize) -> Result<(), DecodeError> {
 // this is fine since these are internal fns, not part of the public api
 // otherwise, checking irrelevant (0, invalid) values at every is_valid_x_padding fn is a pain
 //
-// this fn expects pads to be a valid base64 padding value
+// ergo, this fn expects pads to be a valid base64 padding value
 pub fn is_valid_64_padding(last_byte: u8, pads: u8) -> Result<(), DecodeError> {
     let char = last_byte as char;
     let last_byte = idx_from_char(char, BASE64);

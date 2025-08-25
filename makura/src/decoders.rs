@@ -11,6 +11,10 @@ pub mod base32;
 pub mod base45;
 pub mod base64;
 
+pub use base32::{base32_decode, base32_hex_decode};
+pub use base45::base45_decode;
+pub use base64::{base64_decode, base64_url_decode};
+
 use crate::base_consts::{BASE16, BASE32, BASE32HEX, BASE45, BASE64, BASE64URL};
 
 pub type DecodeResult<T> = Result<T, DecodeError>;

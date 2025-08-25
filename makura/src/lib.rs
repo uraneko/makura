@@ -1,8 +1,125 @@
 #![no_std]
+// #![deny(clippy::unwrap_used)]
 // #![cfg_attr(not(feature = "std"), no_std)]
 #![doc(html_playground_url = "https://play.rust-lang.org/?version=stable&mode=debug&edition=2024")]
 #![cfg_attr(feature = "nightly", feature(doc_auto_cfg))]
 #![cfg_attr(feature = "nightly", feature(test))]
+
+// NOTE will change the api to be like this
+// value.to_enc::<Base64>().repeat(5).encode()
+// value.to_enc::<Base64>().chain::<Base32>().repeat(5).decode()
+// value.to_enc().deduce().decode()
+
+extern crate alloc;
+use alloc::string::{String, ToString};
+use alloc::vec::Vec;
+use core::convert::AsRef;
+use core::fmt::Display;
+
+pub mod encodings;
+pub mod transmutations;
+pub use encodings::*;
+pub mod encoding;
+pub use encoding::{Encoding, input_measurements, input_padding};
+
+pub use {Base16, Base32, Base32Hex, Base45, Base64, Base64Url};
+
+struct EncodableBuffer<Enc: Encoding> {
+    buf: Vec<u8>,
+    encoding: Enc,
+}
+
+trait Encodable {
+    fn to_enc<E: Encoding>(&self) -> EncodableBuffer<E>;
+
+    fn into_enc<E: Encoding>(self) -> EncodableBuffer<E>;
+}
+
+impl<T: Display> Encodable for T {
+    fn to_enc<E: Encoding>(&self) -> EncodableBuffer<E> {
+        EncodableBuffer {
+            buf: self.to_string().into(),
+            encoding: E::new(),
+        }
+    }
+
+    fn into_enc<E: Encoding>(self) -> EncodableBuffer<E> {
+        EncodableBuffer {
+            buf: self.to_string().into(),
+            encoding: E::new(),
+        }
+    }
+}
+
+// struct EncodableBufRef<'a, Enc> {
+//     buf: &'a [u8],
+//     encoding: Enc,
+// }
+//
+// trait EncodableRef {
+//     fn enc<'a, E: Encoding>(&self, buf: &mut [u8]) -> EncodableBufRef<'a, E>
+//     where
+//         Self: AsRef<&'a [u8]> + Sized,
+//     {
+//         EncodableBufRef {
+//             buf: self.as_ref(),
+//             encoding: E::new(),
+//         }
+//     }
+// }
+//
+// impl<'a, T: AsRef<&'a [u8]>> EncodableRef for T {}
+
+impl<E: Encoding> EncodableBuffer<E> {
+    /// encodes the value
+    fn encode(self) -> Vec<u8> {
+        let buf = self.buf;
+        self.encoding.encode(&buf)
+    }
+
+    /// decodes the value
+    fn decode(self) -> DecodeResult<Vec<u8>> {
+        let buf = self.buf;
+
+        Ok(self.encoding.decode(&buf))
+    }
+
+    /// returns the encoding, if any
+    ///
+    /// ### Usage
+    ///
+    /// - normally used after deduce or infer
+    ///
+    /// - returns None when used on a decoded value
+    ///
+    fn encoding() -> Option<E> {
+        todo!();
+    }
+}
+
+// macro_rules! encoding_from_array {}
+
+struct Repeat<E> {
+    enc: E,
+    times: usize,
+    buf: Vec<u8>,
+}
+
+struct Chain<E, Enc: Encoding> {
+    enc: E,
+    encoding: Enc,
+    buf: Vec<u8>,
+}
+
+struct Deduce<E> {
+    enc: E,
+    buf: Vec<u8>,
+}
+
+struct Infer<E> {
+    enc: E,
+    buf: Vec<u8>,
+}
 
 mod base_transformer;
 pub(crate) use base_transformer::BaseTransformer;
@@ -29,7 +146,6 @@ pub use encoders::Encode;
 pub mod encoding_checks {
     use super::decoders;
 
-    pub use decoders::base16::{base16_decode, chars_are_16, is_valid_16_len};
     pub use decoders::base32::{base32_decode, chars_are_32, is_valid_32_len, is_valid_32_padding};
     pub use decoders::base32::{base32_hex_decode, chars_are_32hex, is_valid_32hex_padding};
     pub use decoders::base45::{base45_decode, chars_are_45, is_valid_45_len};
